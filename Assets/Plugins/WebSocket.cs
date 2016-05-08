@@ -29,10 +29,10 @@ public class WebSocket
 
 	public string RecvString()
 	{
-		byte[] retval = Recv();
+		WebSocketSharp.MessageEventArgs retval = Recv();
 		if (retval == null)
 			return null;
-		return Encoding.UTF8.GetString (retval);
+		return Encoding.UTF8.GetString (retval.RawData);
 	}
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -102,14 +102,14 @@ public class WebSocket
 	}
 #else
 	WebSocketSharp.WebSocket m_Socket;
-	public Queue<byte[]> m_Messages = new Queue<byte[]>();
+	public Queue<WebSocketSharp.MessageEventArgs> m_Messages = new Queue<WebSocketSharp.MessageEventArgs>();
 	bool m_IsConnected = false;
 	string m_Error = null;
 
 	public IEnumerator Connect()
 	{
 		m_Socket = new WebSocketSharp.WebSocket(mUrl.ToString());
-		m_Socket.OnMessage += (sender, e) => m_Messages.Enqueue (e.RawData);
+		m_Socket.OnMessage += (sender, e) => m_Messages.Enqueue (e);
 		m_Socket.OnOpen += (sender, e) => m_IsConnected = true;
 		m_Socket.OnError += (sender, e) => m_Error = e.Message;
 		m_Socket.ConnectAsync();
@@ -122,7 +122,7 @@ public class WebSocket
 		m_Socket.Send(buffer);
 	}
 
-	public byte[] Recv()
+	public WebSocketSharp.MessageEventArgs Recv()
 	{
 		if (m_Messages.Count == 0)
 			return null;
