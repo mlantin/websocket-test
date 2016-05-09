@@ -1,12 +1,17 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 public class SocketDispatch : MonoBehaviour {
 
 	public delegate void VRMsgHandler(Google.Protobuf.VRCom.Update msg);
+	public delegate void MocapHandler(Google.Protobuf.VRCom.MocapSubject msg);
+
 	static event VRMsgHandler OnMocapMsg;
-	static event VRMsgHandler OnHydraMsg; 
+	static event VRMsgHandler OnHydraMsg;
+
+	static Dictionary <string, MocapHandler> mocapHandlers = new Dictionary<string,MocapHandler>();
 
 	public string address = "ws://127.0.0.1:4567";
 	WebSocket w;
@@ -30,6 +35,11 @@ public class SocketDispatch : MonoBehaviour {
 					case Google.Protobuf.VRCom.Update.VrmsgOneofCase.Mocap:
 						if (OnMocapMsg != null)
 							OnMocapMsg (updateMsg);
+						Google.Protobuf.Collections.MapField<string, Google.Protobuf.VRCom.MocapSubject> subjects = updateMsg.Mocap.Subjects;
+						foreach (KeyValuePair<string,MocapHandler> pair in mocapHandlers) {
+							if (subjects.ContainsKey(pair.Key))
+								mocapHandlers[pair.Key](subjects[pair.Key]);
+						}
 						break;
 					case Google.Protobuf.VRCom.Update.VrmsgOneofCase.Hydra:
 						if (OnHydraMsg != null)
@@ -66,6 +76,13 @@ public class SocketDispatch : MonoBehaviour {
 		default:
 			break;
 		}
+	}
+
+	public static void On(string subjectName, MocapHandler handler) {
+		if (mocapHandlers.ContainsKey (subjectName))
+			mocapHandlers [subjectName] += handler;
+		else
+			mocapHandlers [subjectName] = handler;
 	}
 
 	void OnApplicationQuit() {

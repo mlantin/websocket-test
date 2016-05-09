@@ -8,7 +8,7 @@ public class CubeMotion : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		SocketDispatch.On (Google.Protobuf.VRCom.Update.VrmsgOneofCase.Mocap, handleMocap);
+		SocketDispatch.On ("test", handleMocap);
 		SocketDispatch.On (Google.Protobuf.VRCom.Update.VrmsgOneofCase.Hydra, handleHydra);
 	}
 		
@@ -16,8 +16,8 @@ public class CubeMotion : MonoBehaviour {
 	void Update () {
 	}
 
-	void handleMocap(Google.Protobuf.VRCom.Update msg) {
-		newpos.Set (msg.Mocap.Subjects [0].Pos.X, msg.Mocap.Subjects [0].Pos.Y, msg.Mocap.Subjects [0].Pos.Z);
+	void handleMocap(Google.Protobuf.VRCom.MocapSubject msg) {
+		newpos.Set (msg.Pos.X, msg.Pos.Y, msg.Pos.Z);
 		transform.position = newpos;
 	}
 
