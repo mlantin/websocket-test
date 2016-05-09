@@ -15,7 +15,7 @@ public class SocketDispatch : MonoBehaviour {
 
 	public string address = "ws://127.0.0.1:4567";
 	WebSocket w;
-	Google.Protobuf.VRCom.Update updateMsg;
+	Google.Protobuf.VRCom.Update updateMsg = new Google.Protobuf.VRCom.Update();
 
 
 	// Use this for initialization
@@ -29,7 +29,7 @@ public class SocketDispatch : MonoBehaviour {
 			if (msg != null)
 			{
 				if (msg.Type == WebSocketSharp.Opcode.Binary) {
-					updateMsg = Google.Protobuf.VRCom.Update.Parser.ParseFrom (msg.RawData);
+					updateMsg.MergeFrom (new Google.Protobuf.CodedInputStream(msg.RawData));
 					Google.Protobuf.VRCom.Update.VrmsgOneofCase msgType = updateMsg.VrmsgCase;
 					switch (msgType) {
 					case Google.Protobuf.VRCom.Update.VrmsgOneofCase.Mocap:
